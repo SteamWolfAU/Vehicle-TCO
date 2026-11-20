@@ -114,6 +114,10 @@
   details[open] summary{ margin-bottom:6px; }
   .error{ color:#ff8e8e; text-align:center; margin-top:10px; min-height:20px; font-size:0.9rem; }
   .hidden{ display:none; }
+  .tabs{ display:flex; gap:8px; background:var(--panel); border:1px solid #334155; border-radius:14px; padding:6px; margin:0 auto 18px; max-width:520px; }
+  button.tab{ flex:1; min-height:46px; margin:0; font-size:15px; background:transparent; color:var(--muted); border-radius:10px; }
+  button.tab.active{ background:linear-gradient(90deg,#008cff,#00d9ff); color:#04101a; }
+  body.own .mode-buy, body:not(.own) .mode-own{ display:none !important; }
   .footer{ margin-top:30px; padding:16px 0 6px; border-top:1px solid #1f2a3d; text-align:center; color:var(--muted); font-size:0.8rem; display:flex; flex-direction:column; align-items:center; gap:8px; }
   .footer img{ height:20px; border-radius:4px; }
   .section-title{ color:var(--blue); font-size:1.05rem; margin:24px 0 0; }
@@ -131,28 +135,68 @@
 <body>
 
   <h1>🚗 Vehicle Total Cost of Ownership</h1>
-  <div class="subtitle">Cash vs Novated Lease vs Non-Novated Lease vs Car Loan &mdash; Australian tax, FBT &amp; GST rules</div>
+  <div class="subtitle" id="subtitle">Cash vs Novated Lease vs Non-Novated Lease vs Car Loan &mdash; Australian tax, FBT &amp; GST rules</div>
+
+  <div class="tabs" role="tablist">
+    <button type="button" class="tab active" data-mode="buy" role="tab" aria-selected="true">🛒 Buying a Car</button>
+    <button type="button" class="tab" data-mode="own" role="tab" aria-selected="false">🔑 Car I Already Own</button>
+  </div>
 
   <div class="container">
 
+    <!-- ALREADY OWNED -->
+    <div class="panel p-blue mode-own">
+      <h2>Car You Already Own</h2>
+      <label for="ownValue">Current Market Value ($)</label>
+      <input id="ownValue" type="number" step="100" min="0" inputmode="decimal" value="25000">
+      <div class="hint">What you could sell it for today. Enter 0 to ignore the car's value and count running costs only.</div>
+      <div class="row2">
+        <div>
+          <label for="ownYears">Years to Keep It</label>
+          <input id="ownYears" type="number" step="1" min="1" max="30" inputmode="numeric" value="5">
+        </div>
+        <div>
+          <label for="ownDep">Depreciation (%/yr)</label>
+          <input id="ownDep" type="number" step="0.5" min="0" max="100" inputmode="decimal" value="10">
+        </div>
+      </div>
+      <div id="ownResaleHint" class="hint"></div>
+      <label for="ownAgeMaint">Extra Maintenance Increase as it Ages (% p.a.)</label>
+      <input id="ownAgeMaint" type="number" step="0.5" min="0" inputmode="decimal" value="5">
+      <div class="hint">On top of inflation &mdash; older cars cost more to keep on the road.</div>
+      <div class="row2">
+        <div>
+          <label for="ownRepair">One-off Repair ($)</label>
+          <input id="ownRepair" type="number" step="100" min="0" inputmode="decimal" value="0">
+        </div>
+        <div>
+          <label for="ownRepairYear">In Year</label>
+          <input id="ownRepairYear" type="number" step="1" min="1" inputmode="numeric" value="3">
+        </div>
+      </div>
+      <div class="hint">e.g. timing belt, clutch, battery, major service.</div>
+      <label for="ownLoanBal">Remaining Loan Balance ($)</label>
+      <input id="ownLoanBal" type="number" step="100" min="0" inputmode="decimal" value="0">
+      <div class="row2">
+        <div>
+          <label for="ownLoanRate">Loan Rate (% p.a.)</label>
+          <input id="ownLoanRate" type="number" step="0.05" min="0" inputmode="decimal" value="8.5">
+        </div>
+        <div>
+          <label for="ownLoanMonths">Months Remaining</label>
+          <input id="ownLoanMonths" type="number" step="1" min="0" inputmode="numeric" value="24">
+        </div>
+      </div>
+    </div>
+
     <!-- VEHICLE & PURCHASE -->
-    <div class="panel p-blue">
+    <div class="panel p-blue mode-buy">
       <h2>Vehicle &amp; Purchase</h2>
       <label for="price">Vehicle Price incl. GST, excl. on-roads ($)</label>
       <input id="price" type="number" step="100" min="0" inputmode="decimal" value="60000">
       <label for="stampDuty">Stamp Duty / Other On-Road Costs ($)</label>
       <input id="stampDuty" type="number" step="10" min="0" inputmode="decimal" value="2400">
       <div class="hint">Varies by state. Some states discount or waive duty for EVs.</div>
-      <label for="vehType">Vehicle Type</label>
-      <select id="vehType">
-        <option value="ice">Petrol / Diesel</option>
-        <option value="hev">Hybrid (HEV)</option>
-        <option value="phev">Plug-in Hybrid (PHEV)</option>
-        <option value="bev">Battery Electric (BEV)</option>
-        <option value="fcev">Hydrogen Fuel Cell (FCEV)</option>
-      </select>
-      <label class="check" id="phevWrap"><input id="phevCommit" type="checkbox"><span>PHEV novated under a financially binding commitment made before 1 April 2025 (keeps EV FBT exemption)</span></label>
-      <div id="evStatus" class="hint"></div>
       <div class="row2">
         <div>
           <label for="term">Term (years)</label>
@@ -167,15 +211,23 @@
         </div>
       </div>
       <div id="resaleHint" class="hint"></div>
-      <label for="oppRate">Opportunity Cost of Cash (% p.a.)</label>
-      <input id="oppRate" type="number" step="0.05" min="0" inputmode="decimal" value="4.5">
-      <label class="check"><input id="oppAfterTax" type="checkbox" checked><span>Interest is taxed at my marginal rate (use after-tax return)</span></label>
-      <div class="hint">e.g. savings account or offset/mortgage rate. Applied to every dollar spent over the term.</div>
     </div>
 
     <!-- RUNNING COSTS -->
     <div class="panel p-red">
       <h2>Running Costs (Year 1)</h2>
+      <label for="vehType">Vehicle Type</label>
+      <select id="vehType">
+        <option value="ice">Petrol / Diesel</option>
+        <option value="hev">Hybrid (HEV)</option>
+        <option value="phev">Plug-in Hybrid (PHEV)</option>
+        <option value="bev">Battery Electric (BEV)</option>
+        <option value="fcev">Hydrogen Fuel Cell (FCEV)</option>
+      </select>
+      <div class="mode-buy">
+        <label class="check" id="phevWrap"><input id="phevCommit" type="checkbox"><span>PHEV novated under a financially binding commitment made before 1 April 2025 (keeps EV FBT exemption)</span></label>
+        <div id="evStatus" class="hint"></div>
+      </div>
       <div class="row2">
         <div>
           <label for="rego">Registration + CTP ($/yr)</label>
@@ -230,21 +282,27 @@
         <option value="2027">2027&ndash;28 (14% bracket)</option>
       </select>
       <div id="marginalHint" class="hint"></div>
-      <label for="payFreq">Pay Frequency</label>
-      <select id="payFreq">
-        <option value="52">Weekly</option>
-        <option value="26" selected>Fortnightly</option>
-        <option value="12">Monthly</option>
-      </select>
-      <label class="check"><input id="noPHI" type="checkbox"><span>No private hospital cover (Medicare Levy Surcharge applies)</span></label>
-      <label class="check"><input id="hasHELP" type="checkbox"><span>I have a HELP / HECS debt</span></label>
+      <label for="oppRate">Opportunity Cost of Cash (% p.a.)</label>
+      <input id="oppRate" type="number" step="0.05" min="0" inputmode="decimal" value="4.5">
+      <label class="check"><input id="oppAfterTax" type="checkbox" checked><span>Interest is taxed at my marginal rate (use after-tax return)</span></label>
+      <div class="hint">e.g. savings account or offset/mortgage rate. Applied to every dollar spent (or tied up in the car) over the period.</div>
+      <div class="mode-buy">
+        <label for="payFreq">Pay Frequency</label>
+        <select id="payFreq">
+          <option value="52">Weekly</option>
+          <option value="26" selected>Fortnightly</option>
+          <option value="12">Monthly</option>
+        </select>
+        <label class="check"><input id="noPHI" type="checkbox"><span>No private hospital cover (Medicare Levy Surcharge applies)</span></label>
+        <label class="check"><input id="hasHELP" type="checkbox"><span>I have a HELP / HECS debt</span></label>
+      </div>
       <label for="busUse">Business / Work-Related Use (%)</label>
       <input id="busUse" type="number" step="1" min="0" max="100" inputmode="numeric" value="0">
-      <div class="hint">Applies to cash, loan &amp; non-novated lease (logbook method). Leave at 0 for private use. Novated leases are employer-provided and handled through FBT instead.</div>
+      <div class="hint">Logbook method: running costs, repairs &amp; loan interest are deducted at this %. Leave at 0 for private use. <span class="mode-buy">Novated leases are handled through FBT instead.</span></div>
     </div>
 
     <!-- NOVATED LEASE -->
-    <div class="panel p-green">
+    <div class="panel p-green mode-buy">
       <h2>Novated Lease (Salary Sacrifice)</h2>
       <label for="novRate">Lease Interest Rate (% p.a.)</label>
       <input id="novRate" type="number" step="0.05" min="0" inputmode="decimal" value="7.5">
@@ -267,7 +325,7 @@
     </div>
 
     <!-- NON-NOVATED LEASE -->
-    <div class="panel p-violet">
+    <div class="panel p-violet mode-buy">
       <h2>Non-Novated Lease</h2>
       <label for="nnRate">Lease Interest Rate (% p.a.)</label>
       <input id="nnRate" type="number" step="0.05" min="0" inputmode="decimal" value="8.0">
@@ -287,7 +345,7 @@
     </div>
 
     <!-- LOAN -->
-    <div class="panel p-amber">
+    <div class="panel p-amber mode-buy">
       <h2>Bank / Personal Car Loan</h2>
       <label for="loanRate">Loan Interest Rate (% p.a.)</label>
       <input id="loanRate" type="number" step="0.05" min="0" inputmode="decimal" value="8.5">
@@ -309,7 +367,7 @@
     </div>
 
     <!-- ADVANCED -->
-    <div class="panel p-muted" style="grid-column:1/-1">
+    <div class="panel p-muted mode-buy" style="grid-column:1/-1">
       <details>
         <summary>ATO thresholds &amp; assumptions (editable)</summary>
         <div class="row2" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
@@ -340,7 +398,7 @@
   <button id="calculateBtn">CALCULATE</button>
   <div id="error" class="error" role="alert"></div>
 
-  <div id="resultsWrap" class="hidden">
+  <div id="resultsWrap" class="hidden mode-buy">
     <div class="results">
       <div class="card c-blue" id="cardCash"><h3>💵 Cash Purchase</h3><div id="totCash" class="value">$0</div><div id="subCash" class="sub"></div></div>
       <div class="card c-green" id="cardNov"><h3>🧾 Novated Lease</h3><div id="totNov" class="value">$0</div><div id="subNov" class="sub"></div></div>
@@ -384,6 +442,44 @@
           <li>Tax uses resident rates, LITO, Medicare levy &amp; (optional) surcharge. Estimates only &mdash; not financial or tax advice.</li>
         </ul>
       </div>
+    </div>
+  </div>
+
+  <!-- ALREADY-OWNED RESULTS -->
+  <div id="ownResults" class="hidden mode-own">
+    <div class="results">
+      <div class="card c-blue"><h3>Total Cost of Ownership</h3><div id="ownTotal" class="value">$0</div><div id="ownTotalSub" class="sub"></div></div>
+      <div class="card c-green"><h3>Cost per Year</h3><div id="ownPerYear" class="value">$0</div><div id="ownPerYearSub" class="sub"></div></div>
+      <div class="card c-violet"><h3>Cost per Week</h3><div id="ownPerWeek" class="value">$0</div><div id="ownPerWeekSub" class="sub"></div></div>
+      <div class="card c-amber"><h3>Cost per km</h3><div id="ownPerKm" class="value">$0</div><div id="ownPerKmSub" class="sub"></div></div>
+    </div>
+
+    <div id="ownSummary" class="summary"></div>
+
+    <div class="graph">
+      <h2>Where the Money Goes</h2>
+      <div id="ownBars"></div>
+    </div>
+
+    <div class="graph">
+      <h2>Year by Year</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Year</th><th>Value at start</th><th>Running costs</th><th>One-off repairs</th><th>Loan interest</th><th>Depreciation</th><th>Tax saved</th><th>Cost for year</th><th>Cumulative</th></tr></thead>
+          <tbody id="ownTable"></tbody>
+        </table>
+      </div>
+      <div id="ownWarn" class="warn"></div>
+    </div>
+
+    <div class="panel p-muted" style="margin-top:20px">
+      <h2>How it's calculated</h2>
+      <ul class="notes">
+        <li><strong>Total cost of ownership</strong> = depreciation (value lost) + running costs + repairs + loan interest + opportunity cost &minus; any business tax deductions. There's no purchase price; the car's current value is what you give up by keeping it rather than selling.</li>
+        <li><strong>Opportunity cost</strong> = interest you'd earn if you sold the car today and invested the equity (value less any loan), plus interest forgone on money spent running it.</li>
+        <li><strong>Cash out of pocket</strong> = what actually leaves your bank account: running costs, repairs and loan repayments.</li>
+        <li>Running costs rise with inflation; maintenance also rises by the ageing rate. Depreciation of the car itself isn't claimed as a tax deduction here.</li>
+      </ul>
     </div>
   </div>
 
@@ -525,16 +621,31 @@
     var ids = ["price","stampDuty","depRate","oppRate","rego","insurance","annualKm","energyUse","energyPrice","maint",
                "tyreCost","tyreKm","otherRun","inflation","income","busUse","novRate","novEst","novFee","novResidual",
                "nnRate","nnEst","nnFee","nnResidual","loanRate","loanDeposit","loanEst","loanFee","loanBalloon",
-               "carLimit","lctThreshold","fbtRate","grossUp"];
+               "carLimit","lctThreshold","fbtRate","grossUp",
+               "ownValue","ownYears","ownDep","ownAgeMaint","ownRepair","ownRepairYear","ownLoanBal","ownLoanRate","ownLoanMonths"];
     var s = {};
     for (var i = 0; i < ids.length; i++){
       var v = num(ids[i]);
       if (isNaN(v) || v < 0){
         errorEl.textContent = "Please enter valid, non-negative numbers in every field.";
         $("resultsWrap").classList.add("hidden");
+        $("ownResults").classList.add("hidden");
         return;
       }
       s[ids[i]] = v;
+    }
+    if (mode === "own"){
+      s.taxYear = $("taxYear").value;
+      s.vehType = $("vehType").value;
+      s.noPHI = false;
+      s.oppAfterTax = $("oppAfterTax").checked;
+      var ownErr = null;
+      if (s.tyreKm <= 0) ownErr = "Tyre life must be greater than zero.";
+      else if (s.ownYears < 1 || s.ownYears > 30) ownErr = "Years to keep it must be between 1 and 30.";
+      else if (s.ownDep > 100 || s.busUse > 100) ownErr = "Percentages must be between 0 and 100.";
+      if (ownErr){ errorEl.textContent = ownErr; $("ownResults").classList.add("hidden"); return; }
+      calculateOwned(s);
+      return;
     }
     s.term = parseInt($("term").value, 10);
     s.taxYear = $("taxYear").value;
@@ -819,6 +930,160 @@
     $("resultsWrap").classList.remove("hidden");
   }
 
+  /* ---------- already-owned car: long-term cost to keep & run ---------- */
+  function calculateOwned(s){
+    var Y = Math.round(s.ownYears), N = Y * 12;
+    var bus = s.busUse / 100;
+    var d = s.ownDep / 100;
+
+    var taxBase = totalTax(s.income, 0, s);
+    var marginal = (totalTax(s.income + 100, 0, s) - taxBase) / 100;
+    var oppRate = s.oppRate / 100 * (s.oppAfterTax ? (1 - marginal) : 1);
+    var rm = Math.pow(1 + oppRate, 1 / 12) - 1;
+    function fv(t){ return Math.pow(1 + rm, N - t); }
+
+    var energyY1 = s.annualKm / 100 * s.energyUse * s.energyPrice;
+    var tyresY1 = s.annualKm / s.tyreKm * s.tyreCost;
+
+    // loan still owing on the car
+    var bal = s.ownLoanBal, li = s.ownLoanRate / 1200, ln = Math.round(s.ownLoanMonths);
+    var loanPmt = (bal > 0 && ln > 0) ? pmtArrears(bal, 0, li, ln) : 0;
+    var payoff = 0, loanPaidTotal = 0;
+
+    var econ = [], cash = [];          // [month, amount]
+    econ.push([0, s.ownValue - bal]);  // equity you could release by selling today
+    var comp = { dep:0, rego:0, ins:0, energy:0, maint:0, tyres:0, other:0, repair:0, interest:0, tax:0 };
+    var rows = [], cumulative = 0;
+    var repairYear = Math.round(s.ownRepairYear);
+
+    for (var k = 1; k <= Y; k++){
+      var f = Math.pow(1 + s.inflation / 100, k - 1);
+      var age = Math.pow(1 + s.ownAgeMaint / 100, k - 1);
+      var c = { rego: s.rego * f, ins: s.insurance * f, energy: energyY1 * f, maint: s.maint * f * age, tyres: tyresY1 * f, other: s.otherRun * f };
+      var runK = c.rego + c.ins + c.energy + c.maint + c.tyres + c.other;
+      var repairK = (k === repairYear) ? s.ownRepair * f : 0;
+      var intK = 0, paidK = 0;
+      for (var m = 1; m <= 12; m++){
+        var t = 12 * (k - 1) + m, out = runK / 12;
+        if (bal > 0.005 && t <= ln){
+          var im = bal * li;
+          intK += im; paidK += loanPmt; loanPaidTotal += loanPmt;
+          bal = bal + im - loanPmt;
+          out += loanPmt;
+        }
+        econ.push([t, out]); cash.push([t, out]);
+      }
+      if (repairK > 0){ econ.push([12 * k - 6, repairK]); cash.push([12 * k - 6, repairK]); }
+      var saveK = bus > 0 ? taxBase - totalTax(s.income - bus * (runK + repairK + intK), 0, s) : 0;
+      if (saveK > 0){ econ.push([12 * k, -saveK]); cash.push([12 * k, -saveK]); }
+      var valStart = s.ownValue * Math.pow(1 - d, k - 1);
+      var depK = valStart * d;
+
+      comp.dep += depK; comp.rego += c.rego; comp.ins += c.ins; comp.energy += c.energy; comp.maint += c.maint;
+      comp.tyres += c.tyres; comp.other += c.other; comp.repair += repairK; comp.interest += intK; comp.tax += saveK;
+
+      var yearCost = runK + repairK + intK + depK - saveK;
+      cumulative += yearCost;
+      rows.push({ k:k, val:valStart, run:runK, repair:repairK, interest:intK, dep:depK, save:saveK, cost:yearCost, cum:cumulative });
+    }
+    // loan still outstanding when you stop: paid out from the sale
+    if (bal > 0.005){ payoff = bal; econ.push([N, payoff]); }
+    var endValue = s.ownValue * Math.pow(1 - d, Y);
+    econ.push([N, -endValue]);
+
+    var nominal = 0, future = 0, cashOut = 0;
+    econ.forEach(function(x){ nominal += x[1]; future += x[1] * fv(x[0]); });
+    cash.forEach(function(x){ cashOut += x[1]; });
+    var opp = future - nominal;
+    var total = future;
+    var totalKm = s.annualKm * Y;
+
+    /* --- hints --- */
+    $("energyHint").innerHTML = "Energy: <strong>" + money(energyY1) + "/yr</strong> (" + money2(s.energyUse * s.energyPrice) + " per 100km)";
+    $("tyreHint").innerHTML = "Tyres: <strong>" + money(tyresY1) + "/yr</strong> &middot; Year-1 running total <strong>" + money(rows[0].run) + "</strong>";
+    $("marginalHint").innerHTML = "Marginal rate incl. Medicare: <strong>" + pct(marginal) + "</strong> &middot; Tax payable: <strong>" + money(taxBase) + "</strong>";
+    $("ownResaleHint").innerHTML = "Estimated value after " + Y + " yr" + (Y > 1 ? "s" : "") + ": <strong>" + money(endValue) + "</strong>" +
+      (loanPmt > 0 ? " &middot; Loan repayment <strong>" + money(loanPmt) + "</strong>/month" : "");
+
+    /* --- cards --- */
+    $("ownTotal").textContent = money(total);
+    $("ownTotalSub").innerHTML = "Over <b>" + Y + " year" + (Y > 1 ? "s" : "") + "</b> &middot; " + totalKm.toLocaleString("en-AU") + " km";
+    $("ownPerYear").textContent = money(total / Y);
+    $("ownPerYearSub").innerHTML = "Cash out of pocket: <b>" + money(cashOut / Y) + "</b>/yr";
+    $("ownPerWeek").textContent = money2(total / Y / 52);
+    $("ownPerWeekSub").innerHTML = "Cash out of pocket: <b>" + money2(cashOut / Y / 52) + "</b>/wk<br>Per month: <b>" + money(total / N) + "</b>";
+    $("ownPerKm").textContent = totalKm > 0 ? money2(total / totalKm) : "—";
+    $("ownPerKmSub").innerHTML = "Running costs only: <b>" + (totalKm > 0 ? money2((comp.rego + comp.ins + comp.energy + comp.maint + comp.tyres + comp.other) / totalKm) : "—") + "</b>/km";
+
+    /* --- summary --- */
+    var principal = loanPaidTotal - comp.interest;
+    $("ownSummary").innerHTML =
+      "Keeping this car for <strong>" + Y + " year" + (Y > 1 ? "s" : "") + "</strong> costs about <strong>" + money(total) + "</strong> &mdash; " +
+      "<strong>" + money(total / Y) + "</strong> a year or <strong>" + money2(total / Y / 52) + "</strong> a week.<br>" +
+      "You'll actually pay <strong>" + money(cashOut) + "</strong> out of pocket" +
+      (principal > 0.5 ? " (including " + money(principal) + " of loan principal, which pays down debt rather than being a cost)" : "") +
+      ". On top of that are the costs that never show up on a bill: depreciation of <strong>" + money(comp.dep) + "</strong> and opportunity cost of <strong>" + money(opp) + "</strong>.<br>" +
+      "<span style='color:var(--muted);font-size:0.85rem'>Opportunity cost uses " + pct(oppRate, 2) + " p.a." + (s.oppAfterTax ? " after tax" : "") + ".</span>";
+
+    /* --- component bars --- */
+    var parts = [
+      ["Depreciation", comp.dep, "blue-bar"], ["Fuel / charging", comp.energy, "green-bar"],
+      ["Insurance", comp.ins, "violet-bar"], ["Servicing & maintenance", comp.maint, "amber-bar"],
+      ["Registration + CTP", comp.rego, "violet-bar"], ["Tyres", comp.tyres, "amber-bar"],
+      ["One-off repairs", comp.repair, "amber-bar"], ["Loan interest", comp.interest, "blue-bar"],
+      ["Opportunity cost", opp, "blue-bar"], ["Other (tolls, parking, roadside)", comp.other, "green-bar"]
+    ].filter(function(p){ return p[1] > 0.5; }).sort(function(a, b){ return b[1] - a[1]; });
+    var gross = parts.reduce(function(a, p){ return a + p[1]; }, 0);
+    var maxP = parts.length ? parts[0][1] : 1;
+    var bh = parts.map(function(p){
+      return "<div class='bar-row'><div class='bar-label'><span>" + p[0].replace("&", "&amp;") + " <span style='color:var(--muted);font-weight:normal'>" + pct(p[1] / gross, 0) + "</span></span><span>" + money(p[1]) + "</span></div>" +
+             "<div class='track'><div class='bar " + p[2] + "' style='width:" + (p[1] / maxP * 100) + "%'></div></div></div>";
+    }).join("");
+    if (comp.tax > 0.5) bh += "<div class='bar-row'><div class='bar-label'><span>Less: tax saved (business use)</span><span style='color:var(--green)'>−" + money(comp.tax) + "</span></div></div>";
+    $("ownBars").innerHTML = bh;
+
+    /* --- year table --- */
+    $("ownTable").innerHTML = rows.map(function(r){
+      return "<tr><td>" + r.k + "</td><td>" + money(r.val) + "</td><td>" + money(r.run) + "</td><td>" + (r.repair ? money(r.repair) : "&mdash;") +
+             "</td><td>" + (r.interest ? money(r.interest) : "&mdash;") + "</td><td>" + money(r.dep) + "</td><td" + (r.save ? " class='neg'>−" + money(r.save) : ">&mdash;") +
+             "</td><td><b>" + money(r.cost) + "</b></td><td>" + money(r.cum) + "</td></tr>";
+    }).join("") +
+    "<tr class='total'><td>Total</td><td></td><td>" + money(rows.reduce(function(a, r){ return a + r.run; }, 0)) + "</td><td>" + money(comp.repair) + "</td><td>" + money(comp.interest) +
+    "</td><td>" + money(comp.dep) + "</td><td>" + (comp.tax ? "−" + money(comp.tax) : "&mdash;") + "</td><td>" + money(cumulative) + "</td><td></td></tr>" +
+    "<tr><td colspan='7'>+ Opportunity cost of equity &amp; spending</td><td>" + money(opp) + "</td><td></td></tr>" +
+    "<tr class='total'><td colspan='7'>Total cost of ownership</td><td>" + money(total) + "</td><td></td></tr>";
+
+    var w = [];
+    if (repairYear > Y && s.ownRepair > 0) w.push("⚠ One-off repair is set for year " + repairYear + ", after you stop owning the car — it isn't counted.");
+    if (payoff > 0) w.push("ℹ " + money(payoff) + " of the loan is still owing after " + Y + " years; it's paid out of the sale and included as interest only.");
+    if (s.ownLoanBal > s.ownValue) w.push("ℹ You owe more than the car is worth (negative equity).");
+    $("ownWarn").innerHTML = w.join("<br>");
+
+    $("ownResults").classList.remove("hidden");
+  }
+
+  /* ---------- mode tabs ---------- */
+  var mode = "buy";
+  var subtitles = {
+    buy: "Cash vs Novated Lease vs Non-Novated Lease vs Car Loan &mdash; Australian tax, FBT &amp; GST rules",
+    own: "Long-term cost to keep and run a car you already own &mdash; no purchase price needed"
+  };
+  function setMode(m){
+    mode = m;
+    document.body.classList.toggle("own", m === "own");
+    document.querySelectorAll(".tab").forEach(function(b){
+      var on = b.getAttribute("data-mode") === m;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    $("subtitle").innerHTML = subtitles[m];
+    try { localStorage.setItem("tcoMode", m); } catch (e) {}
+    calculate();
+  }
+  document.querySelectorAll(".tab").forEach(function(b){
+    b.addEventListener("click", function(){ setMode(b.getAttribute("data-mode")); });
+  });
+
   $("calculateBtn").addEventListener("click", calculate);
   document.querySelectorAll("input, select").forEach(function(el){
     el.addEventListener("keydown", function(e){
@@ -828,7 +1093,9 @@
   });
 
   syncLabels();
-  calculate();
+  var savedMode = null;
+  try { savedMode = localStorage.getItem("tcoMode"); } catch (e) {}
+  setMode(savedMode === "own" ? "own" : "buy");
 })();
 </script>
 </body>
