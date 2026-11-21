@@ -114,6 +114,7 @@
   details[open] summary{ margin-bottom:6px; }
   .error{ color:#ff8e8e; text-align:center; margin-top:10px; min-height:20px; font-size:0.9rem; }
   .hidden{ display:none; }
+  .note-box{ margin-top:12px; padding:10px 12px; border-left:3px solid var(--green); background:rgba(0,255,136,.06); border-radius:6px; }
   .tabs{ display:flex; gap:8px; background:var(--panel); border:1px solid #334155; border-radius:14px; padding:6px; margin:0 auto 18px; max-width:520px; }
   button.tab{ flex:1; min-height:46px; margin:0; font-size:15px; background:transparent; color:var(--muted); border-radius:10px; }
   button.tab.active{ background:linear-gradient(90deg,#008cff,#00d9ff); color:#04101a; }
@@ -199,10 +200,12 @@
       <div class="hint">Varies by state. Some states discount or waive duty for EVs.</div>
       <div class="row2">
         <div>
-          <label for="term">Term (years)</label>
+          <label for="term">Compare Over (years)</label>
           <select id="term">
             <option value="1">1</option><option value="2">2</option>
             <option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+            <option value="6">6</option><option value="7">7</option><option value="8">8</option>
+            <option value="9">9</option><option value="10">10</option>
           </select>
         </div>
         <div>
@@ -211,6 +214,7 @@
         </div>
       </div>
       <div id="resaleHint" class="hint"></div>
+      <div class="hint">All four options are costed over this same period. Each finance option has its own term below.</div>
     </div>
 
     <!-- RUNNING COSTS -->
@@ -304,8 +308,20 @@
     <!-- NOVATED LEASE -->
     <div class="panel p-green mode-buy">
       <h2>Novated Lease (Salary Sacrifice)</h2>
-      <label for="novRate">Lease Interest Rate (% p.a.)</label>
-      <input id="novRate" type="number" step="0.05" min="0" inputmode="decimal" value="12.5">
+      <div class="row2">
+        <div>
+          <label for="novTerm">Lease Term (years)</label>
+          <select id="novTerm">
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+          </select>
+        </div>
+        <div>
+          <label for="novRate">Interest Rate (% p.a.)</label>
+          <input id="novRate" type="number" step="0.05" min="0" inputmode="decimal" value="12.5">
+        </div>
+      </div>
+      <div class="hint note-box">ℹ Novated leases in Australia have a <strong>maximum term of 5 years</strong>. If you compare over a longer period, the calculator assumes you pay the residual at the end of the lease and keep the car, paying running costs from post-tax income after that.</div>
       <div class="row2">
         <div>
           <label for="novEst">Establishment Fee ($)</label>
@@ -327,8 +343,19 @@
     <!-- NON-NOVATED LEASE -->
     <div class="panel p-violet mode-buy">
       <h2>Non-Novated Lease</h2>
-      <label for="nnRate">Lease Interest Rate (% p.a.)</label>
-      <input id="nnRate" type="number" step="0.05" min="0" inputmode="decimal" value="12.5">
+      <div class="row2">
+        <div>
+          <label for="nnTerm">Lease Term (years)</label>
+          <select id="nnTerm">
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+          </select>
+        </div>
+        <div>
+          <label for="nnRate">Interest Rate (% p.a.)</label>
+          <input id="nnRate" type="number" step="0.05" min="0" inputmode="decimal" value="12.5">
+        </div>
+      </div>
       <div class="row2">
         <div>
           <label for="nnEst">Establishment Fee ($)</label>
@@ -341,14 +368,30 @@
       </div>
       <label for="nnResidual">End-of-Lease Residual / Balloon (%)</label>
       <input id="nnResidual" type="number" step="0.01" min="0" max="100" inputmode="decimal" value="46.88">
-      <div class="hint">Paid from post-tax income. Rentals and residual attract GST; deductible only to the extent of business use.</div>
+      <div id="nnResidualHint" class="hint"></div>
+      <div class="hint">Paid from post-tax income. Rentals and residual attract GST; deductible only to the extent of business use. Terms are typically 1&ndash;5 years.</div>
     </div>
 
     <!-- LOAN -->
     <div class="panel p-amber mode-buy">
       <h2>Bank / Personal Car Loan</h2>
-      <label for="loanRate">Loan Interest Rate (% p.a.)</label>
-      <input id="loanRate" type="number" step="0.05" min="0" inputmode="decimal" value="8.5">
+      <div class="row2">
+        <div>
+          <label for="loanTerm">Loan Term (years)</label>
+          <select id="loanTerm">
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+            <option value="6">6</option><option value="7">7</option><option value="8">8</option>
+            <option value="9">9</option><option value="10">10</option>
+          </select>
+        </div>
+        <div>
+          <label for="loanRate">Interest Rate (% p.a.)</label>
+          <input id="loanRate" type="number" step="0.05" min="0" inputmode="decimal" value="8.5">
+        </div>
+      </div>
+      <div class="hint">Car loans run for up to 10 years. Longer terms mean lower repayments but more interest. If the loan runs past the comparison period, the balance still owing is paid out of the sale at the end.</div>
+      <div id="loanHint" class="hint"></div>
       <label for="loanDeposit">Deposit ($)</label>
       <input id="loanDeposit" type="number" step="100" min="0" inputmode="decimal" value="0">
       <div class="row2">
@@ -409,7 +452,7 @@
     <div id="summary" class="summary"></div>
 
     <div class="graph">
-      <h2>Net Cost of Ownership over the Term</h2>
+      <h2>Net Cost of Ownership over the Comparison Period</h2>
       <div class="bar-row"><div class="bar-label"><span>Cash Purchase</span><span id="lblCash">$0</span></div><div class="track"><div id="barCash" class="bar blue-bar"></div></div></div>
       <div class="bar-row"><div class="bar-label"><span>Novated Lease</span><span id="lblNov">$0</span></div><div class="track"><div id="barNov" class="bar green-bar"></div></div></div>
       <div class="bar-row"><div class="bar-label"><span>Non-Novated Lease</span><span id="lblNN">$0</span></div><div class="track"><div id="barNN" class="bar violet-bar"></div></div></div>
@@ -436,7 +479,8 @@
         <h2>How it's calculated</h2>
         <ul class="notes">
           <li>Every option ends with you owning the car (balloon/residual paid), so all are compared on the same basis and the expected resale value is deducted.</li>
-          <li>Opportunity cost = interest each dollar would have earned from when it's spent until the end of the term.</li>
+          <li>Opportunity cost = interest each dollar would have earned from when it's spent until the end of the comparison period.</li>
+          <li>Each finance option has its own term. Novated leases are capped at 5 years in Australia; a lease or loan that ends early is followed by outright ownership, and one that runs past the period is paid out at the end.</li>
           <li>Novated: financier claims GST on the price (capped at the car limit); employer claims GST on rentals &amp; packaged costs. FBT is eliminated with post-tax Employee Contributions (ECM) unless the EV exemption applies. Base value drops by &#8531; from year 5.</li>
           <li>Business use: running costs, interest, fees &amp; lease rentals are deducted at your business-use %, with diminishing-value depreciation (25%) capped at the car limit. GST credits for GST-registered businesses and the luxury-car notional-loan rules for leases aren't modelled.</li>
           <li>Tax uses resident rates, LITO, Medicare levy &amp; (optional) surcharge. Estimates only &mdash; not financial or tax advice.</li>
@@ -602,13 +646,16 @@
     syncLabels();
     calculate();
   });
-  $("term").addEventListener("change", function(){
-    if ($("novResidualAuto").checked) $("novResidual").value = ATO_RESIDUAL[$("term").value].toFixed(2);
-    $("nnResidual").value = ATO_RESIDUAL[$("term").value].toFixed(2);
+  $("novTerm").addEventListener("change", function(){
+    if ($("novResidualAuto").checked) $("novResidual").value = ATO_RESIDUAL[$("novTerm").value].toFixed(2);
+    calculate();
+  });
+  $("nnTerm").addEventListener("change", function(){
+    $("nnResidual").value = ATO_RESIDUAL[$("nnTerm").value].toFixed(2);
     calculate();
   });
   $("novResidualAuto").addEventListener("change", function(){
-    if (this.checked) $("novResidual").value = ATO_RESIDUAL[$("term").value].toFixed(2);
+    if (this.checked) $("novResidual").value = ATO_RESIDUAL[$("novTerm").value].toFixed(2);
     calculate();
   });
   $("novResidual").addEventListener("input", function(){ $("novResidualAuto").checked = false; });
@@ -648,6 +695,9 @@
       return;
     }
     s.term = parseInt($("term").value, 10);
+    s.novTerm = parseInt($("novTerm").value, 10);
+    s.nnTerm = parseInt($("nnTerm").value, 10);
+    s.loanTerm = parseInt($("loanTerm").value, 10);
     s.taxYear = $("taxYear").value;
     s.payFreq = parseInt($("payFreq").value, 10);
     s.vehType = $("vehType").value;
@@ -713,21 +763,41 @@
       }
     }
 
+    // lease balance (ex GST) after `months` rentals paid in advance
+    function leaseBalance(pv, rent, i, months){
+      var b = pv;
+      for (var t = 0; t < months; t++) b = (b - rent) * (1 + i);
+      return b;
+    }
+
     /* ======= 2. NOVATED LEASE ======= */
+    // Lease runs novTerm years (max 5). If shorter than the comparison period, the residual is paid
+    // and the car is kept, with running costs paid post-tax. If longer, it is paid out at the period end.
     var nov = newResult();
     var novCost = s.price - gstCredit;                // financier claims GST credit
     var novFinanced = novCost + s.stampDuty + s.novEst;
     var novResidual = novCost * s.novResidual / 100;  // residual ex GST
-    var novRent = pmtAdvance(novFinanced, novResidual, s.novRate / 1200, N); // ex GST, employer reclaims GST
-    nov.interest = novRent * N + novResidual - novFinanced;
-    nov.finance = novRent * N;
-    nov.endPay = novResidual * 1.1;                    // GST charged on residual sale
+    var novLN = s.novTerm * 12;
+    var novRent = pmtAdvance(novFinanced, novResidual, s.novRate / 1200, novLN); // ex GST, employer reclaims GST
+    var novPaidMonths = Math.min(novLN, N);
+    var novEndMonth = Math.min(novLN, N);
+    var novPayoutEx = novLN <= N ? novResidual : leaseBalance(novFinanced, novRent, s.novRate / 1200, N);
+    nov.interest = novRent * novPaidMonths + novPayoutEx - novFinanced;
+    nov.finance = novRent * novPaidMonths;
+    nov.endPay = novPayoutEx * 1.1;                    // GST charged on residual sale / payout
+    nov.endLabel = novLN <= N ? "Residual (yr " + s.novTerm + ")" : "Early payout";
     var feeExGST = s.novFee * 12 / 1.1;
     var baseValue = s.price;
     var novYear1 = null;
     var helpBase = helpRepay(s.income, 0), helpNovY1 = 0;
     for (k = 1; k <= s.term; k++){
       rc = runYear(k);
+      if (k > s.novTerm){
+        // lease finished: car owned outright, running costs paid from post-tax income
+        nov.running += rc.incl;
+        for (m = 1; m <= 12; m++) add(nov, 12*(k-1)+m, rc.incl / 12);
+        continue;
+      }
       var packaged = s.novBundle ? rc.exGST : 0;
       var nonPackaged = s.novBundle ? 0 : rc.incl;
       var P = novRent * 12 + feeExGST + packaged;
@@ -748,61 +818,77 @@
         novYear1 = { P:P, pre:pre, post:post, ecm:ecm, tv:tv, rfba:rfba, save:save, nonPackaged:nonPackaged, packaged:packaged };
       }
     }
-    add(nov, N, nov.endPay);
+    add(nov, novEndMonth, nov.endPay);
 
     /* ======= 3. NON-NOVATED LEASE ======= */
     var nn = newResult();
     var nnCost = s.price - gstCredit;
     var nnFinanced = nnCost + s.stampDuty + s.nnEst;
     var nnResidual = nnCost * s.nnResidual / 100;
-    var nnRent = pmtAdvance(nnFinanced, nnResidual, s.nnRate / 1200, N);
+    var nnLN = s.nnTerm * 12;
+    var nnRent = pmtAdvance(nnFinanced, nnResidual, s.nnRate / 1200, nnLN);
     var nnRentIncl = nnRent * 1.1;
-    nn.interest = nnRent * N + nnResidual - nnFinanced;
-    nn.finance = nnRentIncl * N;
-    nn.endPay = nnResidual * 1.1;
-    for (m = 0; m < N; m++) add(nn, m, nnRentIncl);
+    var nnPaidMonths = Math.min(nnLN, N);
+    var nnPayoutEx = nnLN <= N ? nnResidual : leaseBalance(nnFinanced, nnRent, s.nnRate / 1200, N);
+    nn.interest = nnRent * nnPaidMonths + nnPayoutEx - nnFinanced;
+    nn.finance = nnRentIncl * nnPaidMonths;
+    nn.endPay = nnPayoutEx * 1.1;
+    nn.endLabel = nnLN <= N ? "Residual (yr " + s.nnTerm + ")" : "Early payout";
+    for (m = 0; m < nnPaidMonths; m++) add(nn, m, nnRentIncl);
     for (k = 1; k <= s.term; k++){
       rc = runYear(k);
+      var active = k <= s.nnTerm;
       nn.running += rc.incl;
-      nn.fees += s.nnFee * 12;
-      for (m = 1; m <= 12; m++) add(nn, 12*(k-1)+m, rc.incl / 12 + s.nnFee);
+      if (active) nn.fees += s.nnFee * 12;
+      for (m = 1; m <= 12; m++) add(nn, 12*(k-1)+m, rc.incl / 12 + (active ? s.nnFee : 0));
       if (bus > 0){
-        sv = taxSaving(bus * (nnRentIncl * 12 + s.nnFee * 12 + rc.incl));
+        sv = taxSaving(bus * ((active ? (nnRentIncl + s.nnFee) * 12 : 0) + rc.incl));
         nn.taxSave += sv; add(nn, 12*k, -sv);
       }
     }
-    add(nn, N, nn.endPay);
+    add(nn, nnPaidMonths, nn.endPay);
 
     /* ======= 4. LOAN ======= */
+    // Loan runs loanTerm years (up to 10). If it outlasts the comparison period,
+    // the balance still owing is paid out at the end of the period.
     var loan = newResult();
     var loanAmt = s.price - s.loanDeposit + s.loanEst;
     var balloon = s.price * s.loanBalloon / 100;
     if (balloon > loanAmt) balloon = loanAmt;
     var li = s.loanRate / 1200;
-    var loanPmt = pmtArrears(loanAmt, balloon, li, N);
+    var loanLN = s.loanTerm * 12;
+    var loanPmt = pmtArrears(loanAmt, balloon, li, loanLN);
+    var loanPaidMonths = Math.min(loanLN, N);
     loan.upfront = s.loanDeposit + s.stampDuty;
-    loan.finance = loanPmt * N;
-    loan.endPay = balloon;
-    loan.interest = loanPmt * N + balloon - loanAmt;
+    loan.finance = loanPmt * loanPaidMonths;
     add(loan, 0, loan.upfront);
     var bal = loanAmt;
     for (k = 1; k <= s.term; k++){
       rc = runYear(k);
-      var interestK = 0;
+      var interestK = 0, feesK = 0;
       for (m = 1; m <= 12; m++){
-        var intM = bal * li;
-        interestK += intM;
-        bal = bal + intM - loanPmt;
-        add(loan, 12*(k-1)+m, loanPmt + s.loanFee + rc.incl / 12);
+        var t = 12*(k-1)+m, out = rc.incl / 12;
+        if (t <= loanLN){
+          var intM = bal * li;
+          interestK += intM;
+          bal = bal + intM - loanPmt;
+          out += loanPmt + s.loanFee;
+          feesK += s.loanFee;
+        }
+        add(loan, t, out);
       }
       loan.running += rc.incl;
-      loan.fees += s.loanFee * 12;
+      loan.fees += feesK;
       if (bus > 0){
-        sv = taxSaving(bus * (interestK + s.loanFee * 12 + declineYear(k) + rc.incl));
+        sv = taxSaving(bus * (interestK + feesK + declineYear(k) + rc.incl));
         loan.taxSave += sv; add(loan, 12*k, -sv);
       }
     }
-    add(loan, N, loan.endPay);
+    // balloon when the loan ends inside the period; otherwise pay out what's still owing
+    loan.endPay = loanLN <= N ? balloon : Math.max(0, bal);
+    loan.endLabel = loanLN <= N ? (balloon > 0 ? "Balloon (yr " + s.loanTerm + ")" : "End payment") : "Balance owing at yr " + s.term;
+    loan.interest = loan.finance + loan.endPay - loanAmt;
+    add(loan, loanPaidMonths, loan.endPay);
 
     /* --- totals --- */
     var opts = [cash, nov, nn, loan];
@@ -822,7 +908,11 @@
     $("tyreHint").innerHTML = "Tyres: <strong>" + money(tyresY1) + "/yr</strong> &middot; Year-1 running total <strong>" + money(runYear(1).incl) + "</strong>";
     $("resaleHint").innerHTML = "Estimated value after " + s.term + " yr" + (s.term > 1 ? "s" : "") + ": <strong>" + money(resale) + "</strong>";
     $("marginalHint").innerHTML = "Marginal rate incl. Medicare: <strong>" + pct(marginal) + "</strong> &middot; Tax payable: <strong>" + money(taxBase) + "</strong>";
-    $("novResidualHint").innerHTML = "ATO minimum for " + s.term + " yr: <strong>" + ATO_RESIDUAL[s.term].toFixed(2) + "%</strong> = " + money(novCost * ATO_RESIDUAL[s.term] / 100) + " + GST";
+    $("novResidualHint").innerHTML = "ATO minimum for " + s.novTerm + " yr: <strong>" + ATO_RESIDUAL[s.novTerm].toFixed(2) + "%</strong> = " + money(novCost * ATO_RESIDUAL[s.novTerm] / 100) + " + GST" +
+      " &middot; Rental <strong>" + money(novRent) + "</strong>/month ex GST";
+    $("nnResidualHint").innerHTML = "Residual: <strong>" + money(nnResidual * 1.1) + "</strong> incl. GST &middot; Rental <strong>" + money(nnRentIncl) + "</strong>/month";
+    $("loanHint").innerHTML = "Repayment: <strong>" + money(loanPmt) + "</strong>/month over " + s.loanTerm + " yr" + (s.loanTerm > 1 ? "s" : "") +
+      " &middot; Total interest over the full loan: <strong>" + money(loanPmt * loanLN + balloon - loanAmt) + "</strong>";
     var evMsg;
     if (ev.exempt) evMsg = "<span style='color:var(--green)'>✔ Eligible for the EV FBT exemption on a novated lease (no FBT, no post-tax contribution).</span>";
     else if (ev.eligibleType && !ev.underThreshold) evMsg = "<span style='color:var(--amber)'>✖ Price exceeds the LCT fuel-efficient threshold (" + money(s.lctThreshold) + ") — EV FBT exemption not available.</span>";
@@ -835,7 +925,7 @@
       return "<b>" + money(r.perMonth) + "</b>/month effective<br>" +
              "Upfront: <b>" + money(r.upfront) + "</b><br>" +
              "Avg monthly outlay: <b>" + money(r.monthlyOutlay) + "</b><br>" +
-             "End payment: <b>" + money(r.endPay) + "</b>" + (extra || "");
+             (r.endLabel || "End payment") + ": <b>" + money(r.endPay) + "</b>" + (extra || "");
     }
     $("totCash").textContent = money(cash.net);
     $("totNov").textContent = money(nov.net);
@@ -917,11 +1007,13 @@
       d += "<br>Compulsory HELP repayment: " + money(helpBase) + " &rarr; <strong>" + money(helpNovY1) + "</strong>/yr (" +
            (helpNovY1 >= helpBase ? "+" : "−") + money(Math.abs(helpNovY1 - helpBase)) + "; reduces your debt, so not counted as a cost)";
     }
-    d += "<br>Residual at end of lease: <strong>" + money(nov.endPay) + "</strong> incl. GST (pay out, refinance, or sell)";
+    d += "<br>" + (s.novTerm <= s.term ? "Residual at end of " + s.novTerm + "-year lease" : "Payout at year " + s.term) + ": <strong>" + money(nov.endPay) + "</strong> incl. GST (pay out, refinance, or sell)";
     $("novDetail").innerHTML = d;
 
     var warns = [];
-    if (s.novResidual + 0.001 < ATO_RESIDUAL[s.term]) warns.push("⚠ Novated residual is below the ATO minimum of " + ATO_RESIDUAL[s.term].toFixed(2) + "% for a " + s.term + "-year term — financiers won't write this.");
+    if (s.novResidual + 0.001 < ATO_RESIDUAL[s.novTerm]) warns.push("⚠ Novated residual is below the ATO minimum of " + ATO_RESIDUAL[s.novTerm].toFixed(2) + "% for a " + s.novTerm + "-year term — financiers won't write this.");
+    if (s.novTerm < s.term) warns.push("ℹ The " + s.novTerm + "-year lease ends before the " + s.term + "-year comparison period: the residual is paid in year " + s.novTerm + " and running costs are paid from post-tax income after that.");
+    if (s.novTerm > s.term) warns.push("ℹ The lease runs longer than the comparison period, so it's paid out early at year " + s.term + " (balance owing + GST).");
     if (s.price > s.carLimit) warns.push("ℹ Price exceeds the car cost limit (" + money(s.carLimit) + "), so GST credits and depreciation are capped.");
     if (!ev.exempt && y.ecm < y.tv - 1) warns.push("⚠ Package too small to fully cover FBT via ECM — employer FBT may be passed on.");
     if (s.income - y.pre < 18200) warns.push("ℹ Salary sacrifice takes taxable income below the tax-free threshold — some deductions give no tax benefit.");
@@ -1089,7 +1181,7 @@
     el.addEventListener("keydown", function(e){
       if (e.key === "Enter"){ e.preventDefault(); calculate(); }
     });
-    if (el.type === "checkbox" || el.tagName === "SELECT") el.addEventListener("change", function(){ if (el.id !== "vehType" && el.id !== "term" && el.id !== "novResidualAuto") calculate(); });
+    if (el.type === "checkbox" || el.tagName === "SELECT") el.addEventListener("change", function(){ if (["vehType","novTerm","nnTerm","novResidualAuto"].indexOf(el.id) < 0) calculate(); });
   });
 
   syncLabels();
