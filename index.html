@@ -214,7 +214,7 @@
         </div>
       </div>
       <div id="resaleHint" class="hint"></div>
-      <div class="hint">All four options are costed over this same period. Each finance option has its own term below.</div>
+      <div class="hint">All options are costed over this same period. Leases are only compared up to 5 years; loans and cash go up to 10.</div>
     </div>
 
     <!-- RUNNING COSTS -->
@@ -321,7 +321,7 @@
           <input id="novRate" type="number" step="0.05" min="0" inputmode="decimal" value="12.5">
         </div>
       </div>
-      <div class="hint note-box">ℹ Novated leases in Australia have a <strong>maximum term of 5 years</strong>. If you compare over a longer period, the calculator assumes you pay the residual at the end of the lease and keep the car, paying running costs from post-tax income after that.</div>
+      <div class="hint note-box">ℹ Novated leases in Australia have a <strong>maximum term of 5 years</strong>. Comparisons over more than 5 years leave leases out. If the lease is shorter than the comparison period, the calculator assumes you pay the residual and keep the car, paying running costs from post-tax income after that.</div>
       <div class="row2">
         <div>
           <label for="novEst">Establishment Fee ($)</label>
@@ -480,7 +480,7 @@
         <ul class="notes">
           <li>Every option ends with you owning the car (balloon/residual paid), so all are compared on the same basis and the expected resale value is deducted.</li>
           <li>Opportunity cost = interest each dollar would have earned from when it's spent until the end of the comparison period.</li>
-          <li>Each finance option has its own term. Novated leases are capped at 5 years in Australia; a lease or loan that ends early is followed by outright ownership, and one that runs past the period is paid out at the end.</li>
+          <li>Each finance option has its own term. Leases are capped at 5 years, so they're left out of comparisons longer than that. A lease or loan that ends early is followed by outright ownership, and one that runs past the period is paid out at the end.</li>
           <li>Novated: financier claims GST on the price (capped at the car limit); employer claims GST on rentals &amp; packaged costs. FBT is eliminated with post-tax Employee Contributions (ECM) unless the EV exemption applies. Base value drops by &#8531; from year 5.</li>
           <li>Business use: running costs, interest, fees &amp; lease rentals are deducted at your business-use %, with diminishing-value depreciation (25%) capped at the car limit. GST credits for GST-registered businesses and the luxury-car notional-loan rules for leases aren't modelled.</li>
           <li>Tax uses resident rates, LITO, Medicare levy &amp; (optional) surcharge. Estimates only &mdash; not financial or tax advice.</li>
@@ -891,6 +891,9 @@
     add(loan, loanPaidMonths, loan.endPay);
 
     /* --- totals --- */
+    // Hard cut-off: leases can't run longer than 5 years, so they can't be compared over a longer period
+    var leasesOK = s.term <= 5;
+    nov.na = nn.na = !leasesOK;
     var opts = [cash, nov, nn, loan];
     opts.forEach(function(r){
       var nominal = 0, future = 0;
@@ -928,18 +931,19 @@
              (r.endLabel || "End payment") + ": <b>" + money(r.endPay) + "</b>" + (extra || "");
     }
     $("totCash").textContent = money(cash.net);
-    $("totNov").textContent = money(nov.net);
-    $("totNN").textContent = money(nn.net);
+    $("totNov").textContent = nov.na ? "N/A" : money(nov.net);
+    $("totNN").textContent = nn.na ? "N/A" : money(nn.net);
     $("totLoan").textContent = money(loan.net);
     $("subCash").innerHTML = sub(cash);
-    $("subNov").innerHTML = sub(nov, "<br>Tax saved: <b>" + money(nov.taxSave) + "</b>");
-    $("subNN").innerHTML = sub(nn, "<br>Rental: <b>" + money(nnRentIncl) + "</b>/month");
+    var naMsg = "Leases have a maximum term of <b>5 years</b>. Set <b>Compare Over</b> to 5 years or less to include this option.";
+    $("subNov").innerHTML = nov.na ? naMsg : sub(nov, "<br>Tax saved: <b>" + money(nov.taxSave) + "</b>");
+    $("subNN").innerHTML = nn.na ? naMsg : sub(nn, "<br>Rental: <b>" + money(nnRentIncl) + "</b>/month");
     $("subLoan").innerHTML = sub(loan, "<br>Repayment: <b>" + money(loanPmt) + "</b>/month");
 
     var names = ["Cash Purchase","Novated Lease","Non-Novated Lease","Car Loan"];
     var cardIds = ["cardCash","cardNov","cardNN","cardLoan"];
     var bestIdx = 0;
-    opts.forEach(function(r, i){ if (r.net < opts[bestIdx].net) bestIdx = i; });
+    opts.forEach(function(r, i){ if (!r.na && r.net < opts[bestIdx].net) bestIdx = i; });
     cardIds.forEach(function(id, i){
       var c = $(id);
       c.classList.toggle("best", i === bestIdx);
@@ -950,26 +954,27 @@
     });
 
     /* --- summary --- */
-    var sorted = opts.map(function(r, i){ return { r:r, i:i }; }).sort(function(a, b){ return a.r.net - b.r.net; });
-    var best = sorted[0], second = sorted[1], worst = sorted[3];
+    var sorted = opts.map(function(r, i){ return { r:r, i:i }; }).filter(function(x){ return !x.r.na; }).sort(function(a, b){ return a.r.net - b.r.net; });
+    var best = sorted[0], second = sorted[1], worst = sorted[sorted.length - 1];
     $("summary").innerHTML =
       "Over <strong>" + s.term + " year" + (s.term > 1 ? "s" : "") + "</strong> and <strong>" + (s.annualKm * s.term).toLocaleString("en-AU") + " km</strong>, " +
       "the <strong>" + names[best.i] + "</strong> is cheapest at <strong>" + money(best.r.net) + "</strong> net (" + money(best.r.net / s.term) + " per year), " +
       "saving <strong>" + money(second.r.net - best.r.net) + "</strong> over the " + names[second.i] +
-      " and <strong>" + money(worst.r.net - best.r.net) + "</strong> over the " + names[worst.i] + ".<br>" +
+      (worst !== second ? " and <strong>" + money(worst.r.net - best.r.net) + "</strong> over the " + names[worst.i] : "") + ".<br>" +
+      (leasesOK ? "" : "<span style='color:var(--amber)'>Novated and non-novated leases are excluded: lease terms are capped at 5 years.</span><br>") +
       "<span style='color:var(--muted);font-size:0.85rem'>Net cost includes finance, fees, running costs, tax effects and the opportunity cost of cash at " +
       pct(oppRate, 2) + " p.a." + (s.oppAfterTax ? " after tax" : "") + ", less the car's " + money(resale) + " resale value.</span>";
 
     /* --- bars --- */
-    var maxVal = Math.max(cash.net, nov.net, nn.net, loan.net, 1);
+    var maxVal = Math.max.apply(null, opts.filter(function(r){ return !r.na; }).map(function(r){ return r.net; }).concat([1]));
     [["barCash","lblCash",cash],["barNov","lblNov",nov],["barNN","lblNN",nn],["barLoan","lblLoan",loan]].forEach(function(x){
-      $(x[0]).style.width = Math.max(0, Math.min(100, x[2].net / maxVal * 100)) + "%";
-      $(x[1]).textContent = money(x[2].net);
+      $(x[0]).style.width = x[2].na ? "0%" : Math.max(0, Math.min(100, x[2].net / maxVal * 100)) + "%";
+      $(x[1]).textContent = x[2].na ? "N/A (max 5 yrs)" : money(x[2].net);
     });
 
     /* --- breakdown table --- */
     function row(label, fn, cls){
-      var tds = opts.map(function(r){ var v = fn(r); return "<td" + (v < -0.5 ? " class='neg'" : "") + ">" + (v === null ? "&mdash;" : money(v)) + "</td>"; }).join("");
+      var tds = opts.map(function(r){ var v = r.na ? null : fn(r); return "<td" + (v < -0.5 ? " class='neg'" : "") + ">" + (v === null ? "&mdash;" : money(v)) + "</td>"; }).join("");
       return "<tr" + (cls ? " class='" + cls + "'" : "") + "><td>" + label + "</td>" + tds + "</tr>";
     }
     var html = "";
@@ -987,7 +992,7 @@
     html += row("Net cost of ownership", function(r){ return r.net; }, "total");
     html += row("Net cost per year", function(r){ return r.net / s.term; });
     var totalKm = s.annualKm * s.term;
-    html += "<tr><td>Net cost per km</td>" + opts.map(function(r){ return "<td>" + (totalKm > 0 ? money2(r.net / totalKm) : "&mdash;") + "</td>"; }).join("") + "</tr>";
+    html += "<tr><td>Net cost per km</td>" + opts.map(function(r){ return "<td>" + (totalKm > 0 && !r.na ? money2(r.net / totalKm) : "&mdash;") + "</td>"; }).join("") + "</tr>";
     $("breakdown").innerHTML = html;
 
     /* --- novated detail --- */
@@ -1008,7 +1013,8 @@
            (helpNovY1 >= helpBase ? "+" : "−") + money(Math.abs(helpNovY1 - helpBase)) + "; reduces your debt, so not counted as a cost)";
     }
     d += "<br>" + (s.novTerm <= s.term ? "Residual at end of " + s.novTerm + "-year lease" : "Payout at year " + s.term) + ": <strong>" + money(nov.endPay) + "</strong> incl. GST (pay out, refinance, or sell)";
-    $("novDetail").innerHTML = d;
+    $("novDetail").innerHTML = leasesOK ? d :
+      "Novated leases in Australia have a maximum term of <strong>5 years</strong>, so they can't be compared over " + s.term + " years. Set <strong>Compare Over</strong> to 5 years or less to see novated lease figures.";
 
     var warns = [];
     if (s.novResidual + 0.001 < ATO_RESIDUAL[s.novTerm]) warns.push("⚠ Novated residual is below the ATO minimum of " + ATO_RESIDUAL[s.novTerm].toFixed(2) + "% for a " + s.novTerm + "-year term — financiers won't write this.");
@@ -1017,7 +1023,7 @@
     if (s.price > s.carLimit) warns.push("ℹ Price exceeds the car cost limit (" + money(s.carLimit) + "), so GST credits and depreciation are capped.");
     if (!ev.exempt && y.ecm < y.tv - 1) warns.push("⚠ Package too small to fully cover FBT via ECM — employer FBT may be passed on.");
     if (s.income - y.pre < 18200) warns.push("ℹ Salary sacrifice takes taxable income below the tax-free threshold — some deductions give no tax benefit.");
-    $("novWarn").innerHTML = warns.join("<br>");
+    $("novWarn").innerHTML = leasesOK ? warns.join("<br>") : "";
 
     $("resultsWrap").classList.remove("hidden");
   }
